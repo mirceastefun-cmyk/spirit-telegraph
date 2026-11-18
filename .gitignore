@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+dev-dist/
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+
+# IMPORTANT: the .kiro folder must NEVER be ignored (Kiroween rule).
+!.kiro/
