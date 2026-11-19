@@ -1,3 +1,5 @@
+import type { Token } from './types';
+
 /**
  * The single signal type that every sensor emits.
  * Implements signal-core R1.1
@@ -54,4 +56,46 @@ export function buildTimeline(
   }
 
   return events;
+}
+
+/**
+ * Drives a decoder with a pre-built SignalEvent timeline, using tick-before-feed
+ * ordering so pending symbols are flushed before each new signal is processed.
+ *
+ * Algorithm:
+ *   For each event: tick(event.t) → collect tokens, then feed(event) → collect tokens.
+ *   After the last event: tick(lastEvent.t + finalGapMs) → collect tokens.
+ *   Return all tokens in arrival order.
+ *
+ * The tick-before-feed ordering prevents the EE→I bug: without it,
+ * `· [letter-gap] ·` would be presented as `··` to the decoder and decoded as I.
+ *
+ * Implements signal-core R11.1–R11.10
+ *
+ * @param decoder - Any decoder with `feed` and `tick` methods returning Token[].
+ * @param events - Pre-built timeline of SignalEvents to replay.
+ * @param finalGapMs - Silence appended after the last event to flush pending symbols (default 30000 ms).
+ * @returns All tokens emitted by the decoder, in arrival order.
+ */
+export function decodeTimeline(
+  decoder: {
+    feed(e: SignalEvent): Token[];
+    tick(nowMs: number): Token[];
+  },
+  events: SignalEvent[],
+  finalGapMs = 30000,
+): Token[] {
+  if (events.length === 0) return [];
+
+  const tokens: Token[] = [];
+
+  for (const event of events) {
+    for (const t of decoder.tick(event.t)) tokens.push(t);
+    for (const t of decoder.feed(event)) tokens.push(t);
+  }
+
+  const lastEvent = events[events.length - 1]!;
+  for (const t of decoder.tick(lastEvent.t + finalGapMs)) tokens.push(t);
+
+  return tokens;
 }

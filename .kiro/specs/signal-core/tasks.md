@@ -23,7 +23,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Extend `src/core/signal/signal-event.test.ts` with two additional cases: a zero-length timeline (`t0` = 0, empty descriptors) and a multi-event timeline whose cumulative `t` values are verified against hand-calculated expectations. Confirm `npm test` passes after Task 1 and Task 2 land.
   - _Implements R1.2, R1.3_
 
-- [ ] 4. `decodeTimeline` helper
+- [x] 4. `decodeTimeline` helper
   - Add `decodeTimeline` to `src/core/signal/signal-event.ts` (or a sibling `src/core/signal/timeline.ts`). The function signature is:
     ```typescript
     function decodeTimeline(
