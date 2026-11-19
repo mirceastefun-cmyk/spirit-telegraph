@@ -252,7 +252,7 @@ K is canonicalised to C (row 1, column 3) by the encoder and by the decoder's gr
 ```typescript
 interface AdaptiveState {
   dotMean:   number;  // clamped to [40, 3000]
-  dashMean:  number;  // unclamped, but ≥ dotMean in practice
+  dashMean:  number;  // always >= 2 × dotMean after each update
   count:     number;  // accepted observation count
 }
 ```
@@ -324,10 +324,11 @@ No command pattern is present in the 48-entry Morse alphabet, and all seven patt
 
 **Observation update** (called by `MorseDecoder` on each completed press):
 
-1. If `d >= longHoldMs` (where `longHoldMs = max(3000, 3 × dashMean)`) → discard the duration; it represents a HELP long-hold, not a Morse element.
-2. Assign `d` to the nearer cluster: compare `|d − dotMean|` with `|d − dashMean|`; ties go to dot.
+1. Compute `longHoldMs = max(3000, 3 × dashMean)`. If `d >= longHoldMs` → discard; this press will be (or was) emitted as a HELP command, not a Morse element.
+2. Classify `d` using the **same geometric threshold** as the decoder: if `d < sqrt(dotMean × dashMean)` → assign to dot cluster; else → assign to dash cluster. (Using the geometric threshold, not the nearest-arithmetic-mean, ensures the learning rule and the classification rule are consistent: a press classified as a dash is always learned as a dash, never accidentally pulled into the dot cluster.)
 3. Update the winning cluster: `mean = α × d + (1 − α) × mean`.
 4. Clamp `dotMean` to [40, 3000] after the update.
+5. Enforce minimum separation: set `dashMean = max(dashMean, 2 × dotMean)`. This prevents the clusters from collapsing together if the user sends only dots for a long time.
 
 **Threshold derivation** (recalculated after every update):
 
@@ -380,6 +381,18 @@ The geometric-mean threshold keeps a symmetric multiplicative margin on both sid
   - Transition to `IDLE`; return all emitted tokens.
   - Subsequent `tick` calls during the same silence return `[]`.
 
+**Flush on the next press (critical for multi-character decoding)**
+
+`feed()` must also flush a pending symbol when a new press arrives after a sufficient silence, so that "EE" (· gap ·) decodes correctly without having to call `tick` between characters.
+
+Inside `feed(event)` when a `'down'` (or `'pulse'` in two-switch mode) is received and `state === AFTER_UP`:
+
+- Compute `silence = event.t − lastUpAt`.
+- If `silence >= letterGapMin` and `silence < wordGapMin` → flush `symbolBuf` using command-first lookup; emit the resulting token; transition to `PRESSING` (for `'down'`) or immediately append the element (for `'pulse'`).
+- If `silence >= wordGapMin` → flush `symbolBuf` (if non-empty); if `autoWordGap && !spaceSentThisSilence` emit `{ kind: 'space' }`, set `spaceSentThisSilence = true`; then proceed with the new press.
+
+This logic mirrors the `tick` path but runs eagerly on the arriving press so that callers that never call `tick` between presses still decode correctly.
+
 **Symbol flush algorithm** (command-first):
 
 1. Look up `symbolBuf` in the Command_Table. If found → emit `{ kind: 'command', name }`.
@@ -387,7 +400,7 @@ The geometric-mean threshold keeps a symmetric multiplicative margin on both sid
 3. Else → emit `{ kind: 'unknown' }`.
 4. Clear `symbolBuf`.
 
-**Two-switch mode**: a `'pulse'` event (or a `'down'`/`'up'` pair) on `channel === dotChannel` appends `'.'` immediately; on `channel === dashChannel` appends `'-'` immediately. Press duration is irrelevant; `AdaptiveTiming` is not updated. Gap timing still governs letter and word boundaries. A `'down'` or `'pulse'` on an unrecognised channel is silently ignored.
+**Two-switch mode**: a `'pulse'` event (or a `'down'`/`'up'` pair) on `channel === dotChannel` appends `'.'` immediately; on `channel === dashChannel` appends `'-'` immediately. Press duration is irrelevant; `AdaptiveTiming` is not updated. After processing the element, record `lastUpAt = event.t` (a `'pulse'` acts like an `'up'` for the purpose of starting the silence timer), so that letter and word gaps are measured from the end of the last element. A `'down'` or `'pulse'` on an unrecognised channel is silently ignored. The flush-on-next-press logic in Fix 1 applies equally: when a `'pulse'` arrives in state `AFTER_UP`, check the silence against `letterGapMin`/`wordGapMin` and flush before appending the new element.
 
 ---
 
@@ -405,28 +418,35 @@ The tap decoder processes `'pulse'` events from a `'knock'` source. Its state tr
 | `IN_GROUP_2`      | Accumulating column-count pulses.                                       |
 | `AFTER_CHAR`      | Column group complete; character pending flush.                         |
 
-### Timing Thresholds
+### Timing Thresholds and Learning
 
-The decoder maintains three EMA means (5-sample α ≈ 0.33, clamped to [100, 5000] ms):
+The decoder maintains three EMA means (smoothing factor α = 1/5 ≈ 0.20, clamped to [100, 5000] ms):
 
 - `knockIntervalMean` — time between consecutive pulses within a group (default 200 ms)
-- `groupPauseMean` — pause between the row group and the column group (default 600 ms)
-- `letterPauseMean` — pause between fully decoded characters (default 1800 ms)
+- `groupPauseMean`    — pause between the row group and the column group (default 600 ms)
+- `letterPauseMean`  — pause between fully decoded characters (default 1800 ms)
 
-Derived thresholds:
+**Classification and threshold derivation** (after every observed interval):
 
-```
-interGroupThreshold  = midpoint(knockIntervalMean, groupPauseMean)
-interLetterThreshold = midpoint(groupPauseMean, letterPauseMean)
-```
-
-The constraint `interGroupThreshold < interLetterThreshold` is maintained by the clamped means.
+1. Classify the observed interval `d` using the current midpoint thresholds:
+   - `d < interGroupThreshold` → knock interval; update `knockIntervalMean`.
+   - `interGroupThreshold ≤ d < interLetterThreshold` → group pause; update `groupPauseMean`.
+   - `d ≥ interLetterThreshold` → letter pause; update `letterPauseMean`.
+2. Enforce minimum separation after each update:
+   - `groupPauseMean = max(groupPauseMean, 1.5 × knockIntervalMean)`
+   - `letterPauseMean = max(letterPauseMean, 1.5 × groupPauseMean)`
+3. Recompute derived thresholds:
+   ```
+   interGroupThreshold  = (knockIntervalMean + groupPauseMean) / 2
+   interLetterThreshold = (groupPauseMean + letterPauseMean) / 2
+   ```
+4. The constraint `interGroupThreshold < interLetterThreshold` is maintained by the enforced separations.
 
 ### Transitions
 
 **On `pulse` arrival** (elapsed = `pulse.t − lastPulseAt`):
 
-- If this is the 8th or more pulse in the current group → emit `{ kind: 'command', name: 'HELP' }`, reset to `IDLE`. Do not append to any group count.
+- If this is the 8th or more pulse in the current group → emit `{ kind: 'command', name: 'HELP' }`, reset all group counts and state to `IDLE`, and enter a **post-HELP cooldown**: ignore all subsequent `pulse` events until a gap of at least `interGroupThreshold` ms has elapsed (measured by `tick`). This prevents the `'up'`-equivalent tail of a long knock burst from registering as the start of a new character.
 - If `elapsed < interGroupThreshold` (or no prior pulse) → increment the current group count. State stays `IN_GROUP_1` or `IN_GROUP_2`.
 - If `interGroupThreshold ≤ elapsed < interLetterThreshold` → the previous group is complete; move to the next group. `IN_GROUP_1 → IN_GROUP_2` (record `group1Count`, reset `group2Count = 1`).
 - If `elapsed ≥ interLetterThreshold` → an inter-letter pause elapsed before this pulse. Flush the previous character first (if any pending groups), then start a new character: set `group1Count = 1`, `group2Count = 0`, transition to `IN_GROUP_1`.
@@ -442,6 +462,8 @@ The constraint `interGroupThreshold < interLetterThreshold` is maintained by the
 2. If `group1Count === 6` and `group2Count ∈ [1,5]` → look up `TAP_GRID[6][group2Count]`; emit `{ kind: 'command', name }`.
 3. Otherwise → emit `{ kind: 'unknown' }`.
 4. Reset both group counts, clear pending state.
+
+**`tapEncodeTimeline` space encoding**: when `text` contains a space character, `tapEncodeTimeline` encodes it as a pause of `2.5 × letterPauseMs` ms (no additional pulses), which exceeds the double-letter-pause threshold and will be decoded as a `{ kind: 'space' }` token. This allows P3 to include strings with spaces.
 
 ---
 
@@ -524,10 +546,12 @@ function decodeTimeline(
 **Algorithm**:
 
 1. For each event in `events` (in order):
-   a. Call `decoder.feed(event)` and collect returned tokens.
-   b. Call `decoder.tick(event.t)` and collect returned tokens.
+   a. Call `decoder.tick(event.t)` FIRST and collect returned tokens.
+   b. Call `decoder.feed(event)` and collect returned tokens.
 2. After the last event, call `decoder.tick(lastEvent.t + finalGapMs)` to flush any pending symbol. If `events` is empty, return `[]`.
 3. Return all tokens concatenated in order.
+
+`tick` is called before `feed` for each event so that any symbol that has been pending since the previous press is flushed before the new signal is processed. This prevents "EE" (· letter-gap ·) from being merged into "I" (··).
 
 The helper is defined in `src/core/signal/signal-event.ts` (or a sibling `timeline.ts`) and re-exported from `index.ts`.
 
@@ -537,7 +561,15 @@ The helper is defined in `src/core/signal/signal-event.ts` (or a sibling `timeli
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-All property tests use `fast-check` (already a dev dependency). No new dependencies are introduced by this spec. Each property test is configured for a minimum of 100 runs; failures print the failing seed via `fc.assert(fc.property(...), { seed: ... })`.
+All property tests use `fast-check` (already a dev dependency). No new dependencies are introduced by this spec. Each property test runs for a minimum of 100 iterations; `fc.assert` prints the failing seed and shrunk counterexample automatically on failure — no manual seed configuration is needed or wanted, as `seed: fc.Random.noShrink()` is not a valid fast-check option and would disable useful shrinking.
+
+**Generator conventions used throughout the properties:**
+
+- **Morse-alphabet strings**: built with `fc.array(fc.constantFrom(...morseAlphabetChars, ' '), { minLength: 1 })` and `.map(arr => arr.join(''))`. Using `fc.constantFrom` over the explicit character set (rather than filtering `fc.string`) ensures that spaces are included in generated strings, so word-gap behaviour is exercised. After normalisation, consecutive spaces are collapsed and leading/trailing spaces are removed before comparison.
+- **Tap-alphabet strings**: built with `fc.array(fc.constantFrom(...tapAlphabetChars, ' '), { minLength: 1 })` similarly. K is included in the character set and normalised to C before comparison.
+- **unitMs**: `fc.integer({ min: 40, max: 3000 })`.
+- **Jitter factors**: `fc.double({ min: 0.75, max: 1.25, noNaN: true })` applied to **both** press durations and silence durations, rounded to the nearest whole millisecond. Rounding prevents sub-millisecond drift that could cause boundary ambiguity.
+- **Timing configs for TapDecoder**: `fc.record({ knockIntervalMs: fc.integer({ min: 100, max: 300 }), groupPauseMs: fc.integer({ min: 400, max: 800 }), letterPauseMs: fc.integer({ min: 1000, max: 3000 }) })` — the ranges guarantee the ordering constraint without filtering.
 
 ---
 
@@ -551,7 +583,7 @@ All property tests use `fast-check` (already a dev dependency). No new dependenc
 
 ### Property 2: Jitter tolerance
 
-*For any* non-empty Morse-alphabet string and *for any* `unitMs` in [40, 3000], when each individual signal duration in the encoded timeline is independently scaled by a factor drawn uniformly from [0.75, 1.25], a `MorseDecoder` initialised with `initialUnitMs = unitMs` SHALL produce a fully correct decoded string from the first character.
+*For any* non-empty Morse-alphabet string and *for any* `unitMs` in [40, 3000], when each individual signal duration (both press durations and inter-signal silences) in the encoded timeline is independently scaled by a factor drawn from `fc.double({ min: 0.75, max: 1.25, noNaN: true })` and rounded to the nearest whole millisecond, a `MorseDecoder` initialised with `initialUnitMs = unitMs` SHALL produce a fully correct decoded string from the first character.
 
 **Validates: Requirements 6, 11.2**
 
@@ -559,7 +591,7 @@ All property tests use `fast-check` (already a dev dependency). No new dependenc
 
 ### Property 3: Tap-code round-trip
 
-*For any* non-empty string composed solely of tap-code alphabet characters (A–Z excluding K) and *for any* valid timing configuration `{ knockIntervalMs ∈ [100, 300], groupPauseMs ∈ [400, 800], letterPauseMs ∈ [1000, 3000] }` with the ordering constraint `knockIntervalMs < groupPauseMs < letterPauseMs`, a `TapDecoder` initialised with matching defaults fed the output of `tapEncodeTimeline(text, timing)` and driven to completion SHALL produce a decoded string equal to `text.toUpperCase()` with every K replaced by C.
+*For any* non-empty string composed of tap-code alphabet characters (A–Z, including K) and space characters and *for any* valid timing configuration `{ knockIntervalMs ∈ [100, 300], groupPauseMs ∈ [400, 800], letterPauseMs ∈ [1000, 3000] }` with the ordering constraint `knockIntervalMs < groupPauseMs < letterPauseMs`, a `TapDecoder` initialised with matching defaults fed the output of `tapEncodeTimeline(text, timing)` and driven to completion SHALL produce a decoded string equal to `text.toUpperCase()` with every K replaced by C and spaces normalised (collapsed, leading/trailing removed).
 
 **Validates: Requirements 8, 11.3**
 
@@ -661,7 +693,7 @@ Key unit test targets:
 
 ### Property-based tests (fast-check)
 
-Each property test file uses `fc.assert(fc.property(...), { numRuns: 100, seed: fc.Random.noShrink() })`. On failure the seed is printed automatically by fast-check.
+Each property test file uses `fc.assert(fc.property(...), { numRuns: 100 })`. On failure the seed and shrunk counterexample are printed automatically by fast-check.
 
 | File | Properties |
 |---|---|
@@ -673,10 +705,10 @@ Each property test file uses `fc.assert(fc.property(...), { numRuns: 100, seed: 
 
 **Generators used**:
 
-- Morse-alphabet strings: `fc.string({ minLength: 1 }).filter(s => s.split('').every(c => morseAlphabet.has(c.toUpperCase())))`
-- Tap-alphabet strings: `fc.string({ minLength: 1 }).filter(s => s.split('').every(c => tapAlphabet.has(c.toUpperCase())))`
+- Morse-alphabet strings: `fc.array(fc.constantFrom(...morseAlphabetChars, ' '), { minLength: 1 }).map(arr => arr.join(''))`
+- Tap-alphabet strings: `fc.array(fc.constantFrom(...tapAlphabetChars, ' '), { minLength: 1 }).map(arr => arr.join(''))`
 - `unitMs`: `fc.integer({ min: 40, max: 3000 })`
-- Jitter factor array: `fc.array(fc.float({ min: 0.75, max: 1.25 }), { minLength: eventCount, maxLength: eventCount })`
+- Jitter factor: `fc.double({ min: 0.75, max: 1.25, noNaN: true })` applied to both press durations and inter-signal silences, rounded to whole milliseconds
 - Timing config: `fc.record({ knockIntervalMs: fc.integer({ min: 100, max: 300 }), groupPauseMs: fc.integer({ min: 400, max: 800 }), letterPauseMs: fc.integer({ min: 1000, max: 3000 }) })`
 - Signal count: `fc.integer({ min: 0, max: 10 })`
 - `settleMs`: `fc.integer({ min: 500, max: 5000 })`
