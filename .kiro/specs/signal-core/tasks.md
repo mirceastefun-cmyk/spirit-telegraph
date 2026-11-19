@@ -14,7 +14,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Update `src/core/signal/signal-event.test.ts`: cover `buildTimeline` output shape (monotonically non-decreasing `t`), cumulative-sum correctness, optional `channel` defaulting to `0`, and the negative-`dt` throw.
   - _Implements R1.1, R1.2, R1.3, R1.4, R1.5_
 
-- [ ] 2. Command table and P5 collision test
+- [x] 2. Command table and P5 collision test
   - Create `src/core/commands/command-table.ts` with a frozen `ReadonlyMap<string, CommandName>` containing the seven entries: `SPACE='..--'`, `BACKSPACE='----'`, `ACCEPT_SUGGESTION='.-.-'`, `NEXT_SUGGESTION='---.'`, `SPEAK='.-.-.`, `CLEAR='........'`, `HELP='...---...'`. No default export.
   - Create `src/core/commands/command-table.test.ts` with an **exhaustive deterministic unit test** (not a property-based test) for P5: iterate all 7 command patterns against all 48 Morse alphabet entries (once the alphabet exists in Task 5; stub with the 48 patterns inline for now if Task 5 is not yet complete) and assert that every command pattern differs from every alphabet pattern and that all command patterns are mutually distinct. The test iterates over concrete sets — no fast-check sampling.
   - _Implements R7.1, R7.2, R7.4, R11.5_
