@@ -24,6 +24,18 @@
         "chatSessionId": "sess_5670da6e-ab8d-4ac6-9cc1-0828b5e900e8",
         "timestamp": 1795108201870
       }
+    ],
+    "3. `buildTimeline` helper — integration smoke test": [
+      {
+        "executionId": "afabc7ba-4907-4812-bc12-33ff07253de6",
+        "chatSessionId": "sess_9035777d-86a9-47bf-9e68-3a76d489800a",
+        "timestamp": 1795108284708
+      },
+      {
+        "executionId": "afabc7ba-4907-4812-bc12-33ff07253de6",
+        "chatSessionId": "sess_9035777d-86a9-47bf-9e68-3a76d489800a",
+        "timestamp": 1795108317235
+      }
     ]
   }
 }

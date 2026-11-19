@@ -19,7 +19,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/commands/command-table.test.ts` with an **exhaustive deterministic unit test** (not a property-based test) for P5: iterate all 7 command patterns against all 48 Morse alphabet entries (once the alphabet exists in Task 5; stub with the 48 patterns inline for now if Task 5 is not yet complete) and assert that every command pattern differs from every alphabet pattern and that all command patterns are mutually distinct. The test iterates over concrete sets — no fast-check sampling.
   - _Implements R7.1, R7.2, R7.4, R11.5_
 
-- [ ] 3. `buildTimeline` helper — integration smoke test
+- [x] 3. `buildTimeline` helper — integration smoke test
   - Extend `src/core/signal/signal-event.test.ts` with two additional cases: a zero-length timeline (`t0` = 0, empty descriptors) and a multi-event timeline whose cumulative `t` values are verified against hand-calculated expectations. Confirm `npm test` passes after Task 1 and Task 2 land.
   - _Implements R1.2, R1.3_
 

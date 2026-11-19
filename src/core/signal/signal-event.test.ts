@@ -23,6 +23,34 @@ describe('SignalEvent', () => {
   });
 });
 
+/**
+ * Integration smoke tests — Implements R1.2, R1.3
+ */
+describe('buildTimeline integration smoke tests', () => {
+  it('zero-length timeline: empty descriptors with t0=0 returns an empty array', () => {
+    const result = buildTimeline([], 0);
+    expect(result).toEqual([]);
+  });
+
+  it('multi-event timeline: cumulative t values match hand-calculated expectations', () => {
+    // dt values: 50, 150, 100, 200 → cumulative from t0=10: 60, 210, 310, 510
+    const events = buildTimeline(
+      [
+        { type: 'down', dt: 50,  source: 'switch' },
+        { type: 'up',   dt: 150, source: 'switch' },
+        { type: 'down', dt: 100, source: 'blink'  },
+        { type: 'pulse',dt: 200, source: 'knock'  },
+      ],
+      10,
+    );
+    expect(events).toHaveLength(4);
+    expect(events[0]!.t).toBe(60);
+    expect(events[1]!.t).toBe(210);
+    expect(events[2]!.t).toBe(310);
+    expect(events[3]!.t).toBe(510);
+  });
+});
+
 describe('buildTimeline', () => {
   it('returns an empty array for an empty descriptor list', () => {
     expect(buildTimeline([])).toEqual([]);
