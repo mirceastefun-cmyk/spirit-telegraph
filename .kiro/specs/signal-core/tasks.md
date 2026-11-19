@@ -8,7 +8,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
 
 ## Tasks
 
-- [ ] 1. Shared types and `buildTimeline`
+- [x] 1. Shared types and `buildTimeline`
   - Update `src/core/signal/signal-event.ts` to add the `channel: 0 | 1` field to `SignalEvent`, add the `TimelineDescriptor` interface, and implement `buildTimeline(descriptors, t0)`. Throw `RangeError("dt must be a non-negative integer")` for negative `dt`. All exports are named; no default export.
   - Define `CommandName`, `CharToken`, `SpaceToken`, `CommandToken`, `UnknownToken`, `AnswerToken`, `Token`, `ComposerEvent`, and `Thresholds` in a new file `src/core/signal/types.ts` (or inline in `signal-event.ts` if preferred for brevity; either way all types must be re-exported from `src/core/index.ts` in Task 24).
   - Update `src/core/signal/signal-event.test.ts`: cover `buildTimeline` output shape (monotonically non-decreasing `t`), cumulative-sum correctness, optional `channel` defaulting to `0`, and the negative-`dt` throw.
