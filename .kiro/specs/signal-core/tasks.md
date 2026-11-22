@@ -48,7 +48,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/morse/morse-encoder.test.ts` covering: single-dot character produces one `down`/`up` pair of duration `unitMs`, single-dash character produces one pair of `3 × unitMs`, inter-element gaps, inter-letter gaps, inter-word gaps, skip of unknown character, empty string, out-of-range `unitMs` throws, and monotonically increasing timestamps.
   - _Implements R3.1, R3.2, R3.3, R3.4, R3.5, R3.6, R3.7_
 
-- [ ] 7. `AdaptiveTiming`
+- [x] 7. `AdaptiveTiming`
   - Create `src/core/morse/adaptive-timing.ts` exporting `AdaptiveTiming` class and `Thresholds` interface (if not already in `types.ts`). Constructor validates `initialUnitMs ∈ [40, 3000]` (throw `RangeError`), `letterGapFactor ∈ [1.5, 6.0]`, and `wordGapFactor > letterGapFactor`. Initial state: `dotMean = initialUnitMs`, `dashMean = 3 × initialUnitMs`, `count = 0`.
   - `observe(d)`: if `d >= longHoldMs` discard; else classify via geometric threshold and EMA-update the winning cluster; clamp `dotMean` to [40, 3000]; enforce `dashMean = max(dashMean, 2 × dotMean)`; increment `count`.
   - During warm-up (`count < warmUpCount`): threshold derivations use `initialUnitMs` as `dotMean` and `3 × initialUnitMs` as `dashMean` even after updates.

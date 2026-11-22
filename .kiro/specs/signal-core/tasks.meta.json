@@ -72,6 +72,18 @@
         "chatSessionId": "sess_8e0e41dc-462b-4533-9020-569884d97f1d",
         "timestamp": 1795330335343
       }
+    ],
+    "7. `AdaptiveTiming`": [
+      {
+        "executionId": "be0729df-0f68-46fd-9cc0-4005313bc484",
+        "chatSessionId": "sess_13afcadb-7682-4f69-a16a-f88ff0563ae3",
+        "timestamp": 1795330432528
+      },
+      {
+        "executionId": "be0729df-0f68-46fd-9cc0-4005313bc484",
+        "chatSessionId": "sess_13afcadb-7682-4f69-a16a-f88ff0563ae3",
+        "timestamp": 1795330488903
+      }
     ]
   }
 }
