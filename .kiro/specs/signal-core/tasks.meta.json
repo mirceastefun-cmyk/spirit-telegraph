@@ -84,6 +84,18 @@
         "chatSessionId": "sess_13afcadb-7682-4f69-a16a-f88ff0563ae3",
         "timestamp": 1795330488903
       }
+    ],
+    "8. One-switch `MorseDecoder`": [
+      {
+        "executionId": "fb3b1c14-e5d9-463d-aa5d-d43f31f3a6a4",
+        "chatSessionId": "sess_b76b74b3-908e-4c5b-8633-b8b93a898437",
+        "timestamp": 1795330560350
+      },
+      {
+        "executionId": "fb3b1c14-e5d9-463d-aa5d-d43f31f3a6a4",
+        "chatSessionId": "sess_b76b74b3-908e-4c5b-8633-b8b93a898437",
+        "timestamp": 1795330748172
+      }
     ]
   }
 }
