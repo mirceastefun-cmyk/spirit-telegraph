@@ -43,7 +43,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/morse/morse-alphabet.test.ts` covering: exact entry count is 48, case-insensitive resolution (`'A'` and `'a'` same pattern), unknown char returns `undefined`, read-only enforcement (attempting to mutate the map has no effect), and that every pattern string is non-empty and contains only `'.'` or `'-'`.
   - _Implements R2.1, R2.2, R2.3, R2.4, R2.5_
 
-- [ ] 6. Morse encoder
+- [x] 6. Morse encoder
   - Create `src/core/morse/morse-encoder.ts` exporting `morseEncode(text: string, unitMs: number, source: SignalSource): SignalEvent[]`. Throw `RangeError("unitMs must be in [40, 3000]")` for out-of-range `unitMs`. Timing ratios: dot = `1 × unitMs`, dash = `3 × unitMs`, inter-element gap = `1 × unitMs`, inter-letter gap = `3 × unitMs`, inter-word gap = `7 × unitMs`. First event's `t` = 0. Unknown characters are silently skipped. Empty string returns `[]`. All events carry `channel: 0`. No default export.
   - Create `src/core/morse/morse-encoder.test.ts` covering: single-dot character produces one `down`/`up` pair of duration `unitMs`, single-dash character produces one pair of `3 × unitMs`, inter-element gaps, inter-letter gaps, inter-word gaps, skip of unknown character, empty string, out-of-range `unitMs` throws, and monotonically increasing timestamps.
   - _Implements R3.1, R3.2, R3.3, R3.4, R3.5, R3.6, R3.7_
