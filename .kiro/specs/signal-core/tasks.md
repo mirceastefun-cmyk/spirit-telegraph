@@ -37,7 +37,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - No dedicated tests for this helper; it is exercised by the property tests in Tasks 9–14 and 18–19.
   - _Implements the test helper referenced by R11.1–R11.10_
 
-- [ ] 5. Morse alphabet
+- [x] 5. Morse alphabet
   - Create `src/core/morse/morse-alphabet.ts` exporting `MORSE_ALPHABET` as a frozen `ReadonlyMap<string, string>` with exactly 48 entries: 26 letters A–Z (stored as lowercase keys), 10 digits 0–9, and 13 punctuation marks `. , ? ! / ' - ( ) : = @`. Values are non-empty strings over `{'.', '-'}`. The character `+` is intentionally absent. No default export.
   - Provide a lookup helper `morsePattern(char: string): string | undefined` that normalises the input to lowercase and returns `undefined` without throwing for unknown characters.
   - Create `src/core/morse/morse-alphabet.test.ts` covering: exact entry count is 48, case-insensitive resolution (`'A'` and `'a'` same pattern), unknown char returns `undefined`, read-only enforcement (attempting to mutate the map has no effect), and that every pattern string is non-empty and contains only `'.'` or `'-'`.
