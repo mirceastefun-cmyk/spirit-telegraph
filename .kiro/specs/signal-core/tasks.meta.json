@@ -96,6 +96,18 @@
         "chatSessionId": "sess_b76b74b3-908e-4c5b-8633-b8b93a898437",
         "timestamp": 1795330748172
       }
+    ],
+    "9. P1 — Morse round-trip property test": [
+      {
+        "executionId": "50989c58-2fb8-413c-99e2-c84b55e5cf1f",
+        "chatSessionId": "sess_80cfd487-42be-4cdc-a767-237f2f8a4a50",
+        "timestamp": 1795449357407
+      },
+      {
+        "executionId": "50989c58-2fb8-413c-99e2-c84b55e5cf1f",
+        "chatSessionId": "sess_80cfd487-42be-4cdc-a767-237f2f8a4a50",
+        "timestamp": 1795449394016
+      }
     ]
   }
 }

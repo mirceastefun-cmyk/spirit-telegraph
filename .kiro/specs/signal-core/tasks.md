@@ -62,7 +62,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/morse/morse-decoder.test.ts` covering: single dot decodes to `'E'`; single dash decodes to `'T'`; dot-dash to `'A'`; flush-on-tick at letter gap; flush-on-tick at word gap emits space; flush-on-next-press (EE case); long-hold emits HELP; post-HELP `up` is ignored and no dot/dash appended; orphan `up` returns `[]`; word-gap space deduplication (two ticks across word-gap → one space); `autoWordGap: false` suppresses automatic space; command pattern `..--` decodes to `SPACE` command; unknown pattern `..` decodes to `unknown` token (since `..` = `I`, but verify a truly unknown buffer).
   - _Implements R4.1, R4.2, R4.3, R4.3a, R4.4, R4.5, R4.6, R4.7, R4.8, R4.9, R4.10, R7.1, R7.3, R7.5_
 
-- [ ] 9. P1 — Morse round-trip property test
+- [x] 9. P1 — Morse round-trip property test
   - Add to `src/core/morse/morse-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 1: Morse round-trip
