@@ -216,6 +216,18 @@
         "chatSessionId": "sess_c5b558fd-2fe7-49d6-a353-f63af61f89db",
         "timestamp": 1795453061632
       }
+    ],
+    "19. P10 — Tap command decoding property test": [
+      {
+        "executionId": "d9470ffb-3a83-46af-9ce6-f4f999a23c0a",
+        "chatSessionId": "sess_259f2be1-79a9-4a13-9b1e-ca66237dc346",
+        "timestamp": 1795453150676
+      },
+      {
+        "executionId": "d9470ffb-3a83-46af-9ce6-f4f999a23c0a",
+        "chatSessionId": "sess_259f2be1-79a9-4a13-9b1e-ca66237dc346",
+        "timestamp": 1795453398979
+      }
     ]
   }
 }

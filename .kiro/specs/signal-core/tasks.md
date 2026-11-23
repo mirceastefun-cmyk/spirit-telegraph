@@ -148,7 +148,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`.
   - _Implements R11.3, validates R8_
 
-- [ ] 19. P10 — Tap command decoding property test
+- [x] 19. P10 — Tap command decoding property test
   - Add to `src/core/tapcode/tap-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 10: Tap command decoding
