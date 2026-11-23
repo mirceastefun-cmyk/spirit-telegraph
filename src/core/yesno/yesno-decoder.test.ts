@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import type { SignalEvent, SignalSource } from '../signal/signal-event';
 import { YesNoDecoder } from './yesno-decoder';
@@ -70,5 +71,32 @@ describe('YesNoDecoder', () => {
     d.feed(ev('down', 0));
     d.feed(ev('up', 100));
     expect(d.tick(600)).toEqual({ kind: 'answer', value: 'yes' });
+  });
+});
+
+describe('YesNoDecoder properties', () => {
+  // Feature: signal-core, Property 7: Yes/No single answer per window
+  /** **Validates: Requirements 9.5, 11.7** */
+  it('emits at most one answer per settle window, matching the signal count', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 500, max: 5000 }),
+        fc.integer({ min: 0, max: 10 }),
+        fc.integer({ min: 1, max: 499 }),
+        (settleMs, count, spacing) => {
+          const d = new YesNoDecoder({ settleMs, source: 'switch' });
+          for (let i = 0; i < count; i++) {
+            expect(d.feed(ev('down', i * spacing, 'switch'))).toBeNull();
+          }
+          const nowMs = count * spacing + settleMs;
+          const first = d.tick(nowMs);
+          if (count === 1) expect(first).toEqual({ kind: 'answer', value: 'yes' });
+          else if (count === 2) expect(first).toEqual({ kind: 'answer', value: 'no' });
+          else expect(first).toBeNull();
+          expect(d.tick(nowMs)).toBeNull();
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });

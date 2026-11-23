@@ -240,6 +240,18 @@
         "chatSessionId": "sess_e4d1601e-5259-415f-8871-05835caf464f",
         "timestamp": 1795453745037
       }
+    ],
+    "21. P7 — Yes/No single answer property test": [
+      {
+        "executionId": "8af331cf-c73b-4b17-a519-ca5693dfaa91",
+        "chatSessionId": "sess_7cb65637-a69d-47ac-8d88-c60a5543dd84",
+        "timestamp": 1795454362747
+      },
+      {
+        "executionId": "8af331cf-c73b-4b17-a519-ca5693dfaa91",
+        "chatSessionId": "sess_7cb65637-a69d-47ac-8d88-c60a5543dd84",
+        "timestamp": 1795454415569
+      }
     ]
   }
 }

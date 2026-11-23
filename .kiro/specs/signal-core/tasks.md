@@ -167,7 +167,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/yesno/yesno-decoder.test.ts` covering: single `down` followed by settle → yes; two `down` events followed by settle → no; zero signals → null; three signals → null; source filter ignores non-matching source events; `settled=true` returns null until a new signal arrives; `settleMs` out-of-range throws.
   - _Implements R9.1, R9.2, R9.3, R9.4, R9.5, R9.6, R9.7_
 
-- [ ] 21. P7 — Yes/No single answer property test
+- [x] 21. P7 — Yes/No single answer property test
   - Add to `src/core/yesno/yesno-decoder.test.ts`:
     ```typescript
     // Feature: signal-core, Property 7: Yes/No single answer per window
