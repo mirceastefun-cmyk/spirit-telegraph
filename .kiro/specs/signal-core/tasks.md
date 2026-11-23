@@ -82,7 +82,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`.
   - _Implements R11.2, validates R6_
 
-- [ ] 11. P4 — No phantom letters property test
+- [x] 11. P4 — No phantom letters property test
   - Add to `src/core/morse/morse-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 4: No phantom letters before letter gap
