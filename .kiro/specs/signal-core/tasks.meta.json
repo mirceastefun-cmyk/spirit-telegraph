@@ -192,6 +192,18 @@
         "chatSessionId": "sess_39833104-4e4c-4ae9-abf5-4c28204ce62f",
         "timestamp": 1795452372066
       }
+    ],
+    "17. `TapDecoder`": [
+      {
+        "executionId": "298fca1e-3439-431e-98d0-435ff9cb490d",
+        "chatSessionId": "sess_8e5e0407-b4a6-4397-82b2-0019c78177e2",
+        "timestamp": 1795452750799
+      },
+      {
+        "executionId": "298fca1e-3439-431e-98d0-435ff9cb490d",
+        "chatSessionId": "sess_8e5e0407-b4a6-4397-82b2-0019c78177e2",
+        "timestamp": 1795452896444
+      }
     ]
   }
 }
