@@ -108,6 +108,18 @@
         "chatSessionId": "sess_80cfd487-42be-4cdc-a767-237f2f8a4a50",
         "timestamp": 1795449394016
       }
+    ],
+    "10. P2 — Jitter tolerance property test": [
+      {
+        "executionId": "309fc753-d6bc-43e4-8306-0ee6b0ffbf4f",
+        "chatSessionId": "sess_fca2921f-ec4c-45a2-8c12-67753f515232",
+        "timestamp": 1795449568525
+      },
+      {
+        "executionId": "309fc753-d6bc-43e4-8306-0ee6b0ffbf4f",
+        "chatSessionId": "sess_fca2921f-ec4c-45a2-8c12-67753f515232",
+        "timestamp": 1795449646265
+      }
     ]
   }
 }

@@ -72,7 +72,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`. Fast-check prints seed and shrunk counterexample on failure automatically.
   - _Implements R11.1, validates R3, R4_
 
-- [ ] 10. P2 — Jitter tolerance property test
+- [x] 10. P2 — Jitter tolerance property test
   - Add to `src/core/morse/morse-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 2: Jitter tolerance
