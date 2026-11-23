@@ -180,7 +180,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`.
   - _Implements R11.7, validates R9.5_
 
-- [ ] 22. `Composer`
+- [x] 22. `Composer`
   - Create `src/core/composer/composer.ts` exporting `Composer` class. `apply(token)` implements all 13 rows of the token decision table: `char` appends (guard buffer < 10000), `space`/`command SPACE` appends space if non-empty and not ending in space (emits `word-completed` with `word = lastWord`), `BACKSPACE` removes last char, `CLEAR` returns `clear-requested` without touching buffer, `SPEAK` returns `speak-requested`, `HELP` returns `help-requested`, `ACCEPT_SUGGESTION` returns `suggestion-accept`, `NEXT_SUGGESTION` returns `suggestion-next`, `unknown` returns `unknown-symbol`, `answer` returns `[]`. `confirmClear()` sets `buffer = ''`. `reset()` sets `buffer = ''`. Expose `readonly buffer`.
   - Create `src/core/composer/composer.test.ts` covering all 13 token kinds per the decision table: char append, char at capacity returns `[]`, space on empty returns `[]`, space when buffer ends with space returns `[]`, space on non-empty appends and returns `word-completed` with correct `word`, BACKSPACE on non-empty, BACKSPACE on empty returns `[]`, CLEAR returns `clear-requested` with current text (buffer unchanged), SPEAK returns `speak-requested`, HELP returns `help-requested`, ACCEPT_SUGGESTION, NEXT_SUGGESTION, unknown, answer returns `[]`, `confirmClear` empties buffer, `reset` empties buffer, buffer-full guard.
   - _Implements R10.1–R10.13_
