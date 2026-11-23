@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { buildTimeline, decodeTimeline } from '../signal/signal-event';
 import type { Token } from '../signal/types';
 import { MORSE_ALPHABET } from './morse-alphabet';
@@ -84,5 +84,43 @@ describe('MorseDecoder no-phantom-letter property', () => {
       }),
       { numRuns: 100 },
     );
+  });
+});
+
+describe('MorseDecoder HELP trigger property', () => {
+  // Feature: signal-core, Property 6: HELP trigger correctness
+  it('P6: continuous SOS fires HELP once; separated SOS decodes as S, O, S', () => {
+    // **Validates: Requirements 7.6, 7.7 (R11.6)**
+    fc.assert(
+      fc.property(unitArb, (unitMs) => {
+        const descriptors: { type: 'down' | 'up'; dt: number; source: 'switch' }[] = [];
+        const presses = [1, 1, 1, 3, 3, 3, 1, 1, 1];
+        presses.forEach((units, i) => {
+          descriptors.push({ type: 'down', dt: i === 0 ? 0 : unitMs, source: 'switch' });
+          descriptors.push({ type: 'up', dt: units * unitMs, source: 'switch' });
+        });
+        const events = buildTimeline(descriptors, 0);
+        // The trailing word-gap `space` from decodeTimeline's final tick is expected, so drop it.
+        const tokens = decodeTimeline(new MorseDecoder({ initialUnitMs: unitMs }), events).filter(
+          (t) => t.kind !== 'space',
+        );
+        return (
+          tokens.length === 1 &&
+          tokens[0]!.kind === 'command' &&
+          (tokens[0] as { name: string }).name === 'HELP'
+        );
+      }),
+      { numRuns: 100 },
+    );
+
+    const separate = decodeTimeline(
+      new MorseDecoder({ initialUnitMs: 100 }),
+      morseEncode('SOS', 100, 'switch'),
+    ).filter((t) => t.kind !== 'space');
+    expect(separate).toEqual([
+      { kind: 'char', value: 'S' },
+      { kind: 'char', value: 'O' },
+      { kind: 'char', value: 'S' },
+    ]);
   });
 });

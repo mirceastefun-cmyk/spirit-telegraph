@@ -97,7 +97,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Extend `src/core/morse/morse-decoder.test.ts` with: `dotChannel === dashChannel` throws; `pulse` on `dotChannel` appends `'.'`; `pulse` on `dashChannel` appends `'-'`; event on unrecognised channel returns `[]`; two-switch flush-on-pulse works correctly; two-switch word-gap space; simultaneous-press rule (second `down` ignored while first active).
   - _Implements R5.1, R5.2, R5.3, R5.4, R5.5, R5.6, R5.7_
 
-- [ ] 13. P6 — HELP trigger correctness property test
+- [x] 13. P6 — HELP trigger correctness property test
   - Add to `src/core/morse/morse-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 6: HELP trigger correctness
