@@ -162,7 +162,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`.
   - _Implements R11.10, validates R8.5a, R8.6a_
 
-- [ ] 20. `YesNoDecoder`
+- [x] 20. `YesNoDecoder`
   - Create `src/core/yesno/yesno-decoder.ts` exporting `YesNoDecoder` class. Constructor validates `settleMs ∈ [500, 10000]` (throw `RangeError("settleMs must be in [500, 10000]")`). State: `{ count, lastSignalT, settled }`. `feed`: ignore `'up'`; ignore mismatched `source`; on `'down'` or `'pulse'` matching source filter — increment `count`, set `lastSignalT = event.t`, clear `settled`. `tick`: if `lastSignalT === null || settled` return `null`; if `nowMs − lastSignalT >= settleMs` resolve: count=1→yes, count=2→no, else→null; set `settled=true`, reset `count=0`, `lastSignalT=null`.
   - Create `src/core/yesno/yesno-decoder.test.ts` covering: single `down` followed by settle → yes; two `down` events followed by settle → no; zero signals → null; three signals → null; source filter ignores non-matching source events; `settled=true` returns null until a new signal arrives; `settleMs` out-of-range throws.
   - _Implements R9.1, R9.2, R9.3, R9.4, R9.5, R9.6, R9.7_

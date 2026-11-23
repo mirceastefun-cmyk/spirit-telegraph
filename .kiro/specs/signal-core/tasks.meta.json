@@ -228,6 +228,18 @@
         "chatSessionId": "sess_259f2be1-79a9-4a13-9b1e-ca66237dc346",
         "timestamp": 1795453398979
       }
+    ],
+    "20. `YesNoDecoder`": [
+      {
+        "executionId": "eed18856-7310-4070-9716-18f06935800b",
+        "chatSessionId": "sess_e4d1601e-5259-415f-8871-05835caf464f",
+        "timestamp": 1795453535196
+      },
+      {
+        "executionId": "eed18856-7310-4070-9716-18f06935800b",
+        "chatSessionId": "sess_e4d1601e-5259-415f-8871-05835caf464f",
+        "timestamp": 1795453745037
+      }
     ]
   }
 }
