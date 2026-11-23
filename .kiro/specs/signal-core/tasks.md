@@ -124,7 +124,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/tapcode/tap-alphabet.test.ts` covering: `TAP_GRID[1][3]` is `'C'`; `TAP_GRID[6][1]` is `'SPACE'`; `tapPattern('K')` returns `[1, 3]` (same as C); `tapPattern('k')` same as `tapPattern('K')`; `tapPattern('1')` returns `undefined`; total grid covers all 25 non-K letters plus 5 row-6 commands.
   - _Implements R8.1_
 
-- [ ] 16. Tap encoder
+- [x] 16. Tap encoder
   - Create `src/core/tapcode/tap-encoder.ts` exporting `tapEncode(text: string): [number, number][]` and `tapEncodeTimeline(text: string, timingMs: { knockIntervalMs: number; groupPauseMs: number; letterPauseMs: number }): SignalEvent[]`.
   - `tapEncode`: case-insensitive, K→C, skip unsupported characters (digits, punctuation, whitespace), return `[row, col]` pairs.
   - `tapEncodeTimeline`: for each `[row, col]` pair emit `row` pulse events separated by `knockIntervalMs`, then a `groupPauseMs` gap, then `col` pulse events separated by `knockIntervalMs`, then a `letterPauseMs` gap. For a space character in the input emit no pulses but advance time by `2.5 × letterPauseMs` ms (this silent pause exceeds the double-letter-pause word-gap threshold and decodes as a `space` token). All events use `source: 'knock'` and `channel: 0`. First event `t = 0`.
