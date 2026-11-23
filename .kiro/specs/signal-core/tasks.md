@@ -119,7 +119,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })`.
   - _Implements R11.9, validates R6_
 
-- [ ] 15. Tap alphabet
+- [x] 15. Tap alphabet
   - Create `src/core/tapcode/tap-alphabet.ts` exporting `TAP_GRID` as a frozen two-dimensional structure `TAP_GRID[row][col]` where `row ∈ [1, 6]`, `col ∈ [1, 5]`. Rows 1–5 return a letter string; row 6 returns a `CommandName`. K is not a grid entry; callers normalise K→C. Also export `tapPattern(char: string): [number, number] | undefined` that returns the `[row, col]` pair for a supported character (case-insensitive, K→C), or `undefined` for unknown characters. No default export.
   - Create `src/core/tapcode/tap-alphabet.test.ts` covering: `TAP_GRID[1][3]` is `'C'`; `TAP_GRID[6][1]` is `'SPACE'`; `tapPattern('K')` returns `[1, 3]` (same as C); `tapPattern('k')` same as `tapPattern('K')`; `tapPattern('1')` returns `undefined`; total grid covers all 25 non-K letters plus 5 row-6 commands.
   - _Implements R8.1_
