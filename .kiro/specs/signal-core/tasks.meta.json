@@ -264,6 +264,18 @@
         "chatSessionId": "sess_24c77964-9311-4b8f-949d-c4fb39961c4f",
         "timestamp": 1795455105764
       }
+    ],
+    "23. P8 — Composer BACKSPACE/CLEAR property test": [
+      {
+        "executionId": "e765bb80-e937-4ccc-b9e4-daed90077996",
+        "chatSessionId": "sess_29c9d3b6-f290-411f-a547-6dbf749728da",
+        "timestamp": 1795455574244
+      },
+      {
+        "executionId": "e765bb80-e937-4ccc-b9e4-daed90077996",
+        "chatSessionId": "sess_29c9d3b6-f290-411f-a547-6dbf749728da",
+        "timestamp": 1795455605753
+      }
     ]
   }
 }

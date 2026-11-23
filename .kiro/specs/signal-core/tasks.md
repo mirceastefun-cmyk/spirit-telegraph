@@ -185,7 +185,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/composer/composer.test.ts` covering all 13 token kinds per the decision table: char append, char at capacity returns `[]`, space on empty returns `[]`, space when buffer ends with space returns `[]`, space on non-empty appends and returns `word-completed` with correct `word`, BACKSPACE on non-empty, BACKSPACE on empty returns `[]`, CLEAR returns `clear-requested` with current text (buffer unchanged), SPEAK returns `speak-requested`, HELP returns `help-requested`, ACCEPT_SUGGESTION, NEXT_SUGGESTION, unknown, answer returns `[]`, `confirmClear` empties buffer, `reset` empties buffer, buffer-full guard.
   - _Implements R10.1–R10.13_
 
-- [ ] 23. P8 — Composer BACKSPACE/CLEAR property test
+- [x] 23. P8 — Composer BACKSPACE/CLEAR property test
   - Create `src/core/composer/composer.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 8: Composer BACKSPACE/CLEAR round-trip
