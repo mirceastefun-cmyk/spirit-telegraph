@@ -136,7 +136,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - Create `src/core/tapcode/tap-decoder.test.ts` covering: `'A'` (1 row pulse, 1 col pulse) decodes to `char 'A'`; `'Z'` (5 row pulses, 5 col pulses) decodes correctly; `K` normalised to `C` at grid level (decoder emits `'C'` for `[1,3]`); row-6 col-1 decodes to `SPACE` command; row-6 col-5 decodes to `NEXT_SUGGESTION` command; 8-pulse burst emits HELP and post-HELP cooldown silences next pulses; row=7 emits `unknown`; col=0 (zero col pulses resolved) emits `unknown`; word-gap space deduplication (double-letter-pause → one space).
   - _Implements R8.4, R8.5, R8.5a, R8.6, R8.6a, R8.7, R8.7a, R8.8_
 
-- [ ] 18. P3 — Tap-code round-trip property test
+- [x] 18. P3 — Tap-code round-trip property test
   - Create `src/core/tapcode/tap-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 3: Tap-code round-trip
