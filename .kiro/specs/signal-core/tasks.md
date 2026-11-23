@@ -108,7 +108,7 @@ The stack is TypeScript strict mode (`noUncheckedIndexedAccess`), Vitest, and fa
   - `fc.assert(fc.property(...), { numRuns: 100 })` for the continuous-SOS case.
   - _Implements R11.6, validates R7.6, R7.7_
 
-- [ ] 14. P9 — Tempo drift property test
+- [x] 14. P9 — Tempo drift property test
   - Add to `src/core/morse/morse-decoder.property.test.ts`:
     ```typescript
     // Feature: signal-core, Property 9: Tempo drift correction

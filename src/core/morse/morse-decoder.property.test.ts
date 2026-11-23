@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { buildTimeline, decodeTimeline } from '../signal/signal-event';
 import type { Token } from '../signal/types';
-import { MORSE_ALPHABET } from './morse-alphabet';
+import { MORSE_ALPHABET, morsePattern } from './morse-alphabet';
 import { MorseDecoder } from './morse-decoder';
 import { morseEncode } from './morse-encoder';
 
@@ -122,5 +122,39 @@ describe('MorseDecoder HELP trigger property', () => {
       { kind: 'char', value: 'O' },
       { kind: 'char', value: 'S' },
     ]);
+  });
+});
+
+describe('MorseDecoder tempo drift property', () => {
+  // Feature: signal-core, Property 9: Tempo drift correction
+  it('P9: decodes every character while the unit drifts up to 5% per character', () => {
+    // **Validates: Requirements 6 (R11.9)**
+    const driftTextArb = fc
+      .array(fc.constantFrom(...morseAlphabetChars), { minLength: 10, maxLength: 20 })
+      .map((arr) => arr.join(''));
+    const driftArb = fc.array(fc.double({ min: 0.95, max: 1.05, noNaN: true }), {
+      minLength: 20,
+      maxLength: 20,
+    });
+    fc.assert(
+      fc.property(unitArb, driftTextArb, driftArb, (u0, text, drifts) => {
+        const descriptors: { type: 'down' | 'up'; dt: number; source: 'switch' }[] = [];
+        let unit = u0;
+        [...text].forEach((ch, ci) => {
+          const pattern = morsePattern(ch)!;
+          const u = Math.round(unit);
+          for (let i = 0; i < pattern.length; i++) {
+            const gap = i > 0 ? u : ci > 0 ? 3 * u : 0;
+            descriptors.push({ type: 'down', dt: gap, source: 'switch' });
+            descriptors.push({ type: 'up', dt: (pattern[i] === '-' ? 3 : 1) * u, source: 'switch' });
+          }
+          unit = Math.min(2 * u0, Math.max(0.5 * u0, unit * drifts[ci]!));
+        });
+        const events = buildTimeline(descriptors, 0);
+        const tokens = decodeTimeline(new MorseDecoder({ initialUnitMs: u0 }), events);
+        return tokensToString(tokens).trim() === text.toUpperCase();
+      }),
+      { numRuns: 100 },
+    );
   });
 });
