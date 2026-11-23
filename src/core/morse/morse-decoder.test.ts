@@ -152,3 +152,78 @@ describe('MorseDecoder (one-switch)', () => {
     expect(d.tick(1000)).toEqual([{ kind: 'char', value: 'E' }, { kind: 'space' }]);
   });
 });
+
+const pulse = (t: number, channel: 0 | 1): SignalEvent => ({ type: 'pulse', t, source: 'switch', channel });
+const chDown = (t: number, channel: 0 | 1): SignalEvent => ({ type: 'down', t, source: 'switch', channel });
+const chUp = (t: number, channel: 0 | 1): SignalEvent => ({ type: 'up', t, source: 'switch', channel });
+const makeTwo = (): MorseDecoder => new MorseDecoder({ mode: 'two-switch', initialUnitMs: 100 });
+
+describe('MorseDecoder (two-switch)', () => {
+  it('throws when dotChannel equals dashChannel', () => {
+    expect(() => new MorseDecoder({ mode: 'two-switch', dotChannel: 1, dashChannel: 1 })).toThrow(
+      new RangeError('dotChannel and dashChannel must differ'),
+    );
+  });
+
+  it('maps a pulse on dotChannel to a dot', () => {
+    const d = makeTwo();
+    expect(d.feed(pulse(0, 0))).toEqual([]);
+    expect(d.tick(175)).toEqual([{ kind: 'char', value: 'E' }]);
+  });
+
+  it('maps a pulse on dashChannel to a dash', () => {
+    const d = makeTwo();
+    d.feed(pulse(0, 1));
+    expect(d.tick(175)).toEqual([{ kind: 'char', value: 'T' }]);
+  });
+
+  it('maps down/up pairs by channel regardless of duration', () => {
+    const d = makeTwo();
+    d.feed(chDown(0, 0));
+    d.feed(chUp(1000, 0));
+    d.feed(pulse(1100, 1));
+    expect(d.tick(1275)).toEqual([{ kind: 'char', value: 'A' }]);
+  });
+
+  it('honours custom channel mapping', () => {
+    const d = new MorseDecoder({ mode: 'two-switch', dotChannel: 1, dashChannel: 0 });
+    d.feed(pulse(0, 1));
+    d.feed(pulse(100, 0));
+    expect(d.tick(275)).toEqual([{ kind: 'char', value: 'A' }]);
+  });
+
+  it('ignores events on an unrecognised channel', () => {
+    const d = new MorseDecoder({ mode: 'two-switch', dotChannel: 0, dashChannel: 1 });
+    const odd = { type: 'pulse', t: 0, source: 'switch', channel: 2 } as unknown as SignalEvent;
+    expect(d.feed(odd)).toEqual([]);
+    expect(d.tick(10000)).toEqual([]);
+  });
+
+  it('flushes the pending letter when the next pulse arrives after the letter gap', () => {
+    const d = makeTwo();
+    d.feed(pulse(0, 0));
+    expect(d.feed(pulse(200, 0))).toEqual([{ kind: 'char', value: 'E' }]);
+    expect(d.tick(500)).toEqual([{ kind: 'char', value: 'E' }]);
+  });
+
+  it('emits a space at the word gap', () => {
+    const d = makeTwo();
+    d.feed(pulse(0, 0));
+    expect(d.feed(pulse(500, 1))).toEqual([{ kind: 'char', value: 'E' }, { kind: 'space' }]);
+  });
+
+  it('ignores a second down on the other channel while the first press is active', () => {
+    const d = makeTwo();
+    d.feed(chDown(0, 0));
+    expect(d.feed(chDown(50, 1))).toEqual([]);
+    d.feed(chUp(100, 1));
+    d.feed(chUp(150, 0));
+    expect(d.tick(325)).toEqual([{ kind: 'char', value: 'E' }]);
+  });
+
+  it('never fires HELP from a long press in two-switch mode', () => {
+    const d = makeTwo();
+    d.feed(chDown(0, 1));
+    expect(d.tick(10000)).toEqual([]);
+  });
+});

@@ -30,14 +30,18 @@ type MorseState = 'IDLE' | 'PRESSING' | 'AFTER_UP' | 'HELP_FIRED';
 
 /**
  * Deterministic one-switch Morse decoder driven by `feed` and `tick`.
- * Two-switch mode is not yet implemented (signal-core task 12).
+ * In two-switch mode the event channel selects dot or dash and adaptive timing is not updated.
  *
  * Implements signal-core R4.1, R4.2, R4.3, R4.3a, R4.4, R4.5, R4.6, R4.7, R4.8, R4.9, R4.10,
- * R7.1, R7.3, R7.5
+ * R7.1, R7.3, R7.5, R5.1, R5.2, R5.3, R5.4, R5.5, R5.6, R5.7
  */
 export class MorseDecoder {
   private readonly timing: AdaptiveTiming;
   private readonly autoWordGap: boolean;
+  private readonly twoSwitch: boolean;
+  private readonly dotChannel: 0 | 1;
+  private readonly dashChannel: 0 | 1;
+  private activeChannel: 0 | 1 | -1 = -1;
 
   private state: MorseState = 'IDLE';
   private symbolBuf = '';
@@ -46,6 +50,12 @@ export class MorseDecoder {
   private spaceSentThisSilence = false;
 
   constructor(config: MorseDecoderConfig = {}) {
+    this.twoSwitch = config.mode === 'two-switch';
+    this.dotChannel = config.dotChannel ?? 0;
+    this.dashChannel = config.dashChannel ?? 1;
+    if (this.twoSwitch && this.dotChannel === this.dashChannel) {
+      throw new RangeError('dotChannel and dashChannel must differ');
+    }
     this.autoWordGap = config.autoWordGap ?? true;
     this.timing = new AdaptiveTiming({
       initialUnitMs: config.initialUnitMs ?? 100,
@@ -66,6 +76,7 @@ export class MorseDecoder {
    * Implements signal-core R4.1, R4.2, R4.3, R4.3a, R4.8, R4.9
    */
   feed(event: SignalEvent): Token[] {
+    if (this.twoSwitch) return this.feedTwoSwitch(event);
     if (event.type === 'down') return this.onDown(event.t);
     if (event.type === 'up') return this.onUp(event.t);
     return [];
@@ -77,6 +88,7 @@ export class MorseDecoder {
    */
   tick(nowMs: number): Token[] {
     if (this.state === 'PRESSING') {
+      if (this.twoSwitch) return [];
       if (nowMs - this.downAt >= this.timing.thresholds.longHoldMs) {
         this.symbolBuf = '';
         this.state = 'HELP_FIRED';
@@ -86,6 +98,35 @@ export class MorseDecoder {
     }
     if (this.state === 'AFTER_UP') return this.flushForSilence(nowMs - this.lastUpAt);
     return [];
+  }
+
+  /** Implements signal-core R5.1, R5.6, R5.7 */
+  private feedTwoSwitch(event: SignalEvent): Token[] {
+    if (event.channel !== this.dotChannel && event.channel !== this.dashChannel) return [];
+    if (event.type === 'down') {
+      if (this.state === 'PRESSING') return [];
+      const tokens = this.state === 'AFTER_UP' ? this.flushForSilence(event.t - this.lastUpAt) : [];
+      this.activeChannel = event.channel;
+      this.state = 'PRESSING';
+      return tokens;
+    }
+    if (event.type === 'up') {
+      if (this.state !== 'PRESSING' || event.channel !== this.activeChannel) return [];
+      this.activeChannel = -1;
+      this.appendElement(event.channel, event.t);
+      return [];
+    }
+    if (this.state === 'PRESSING') return [];
+    const tokens = this.state === 'AFTER_UP' ? this.flushForSilence(event.t - this.lastUpAt) : [];
+    this.appendElement(event.channel, event.t);
+    return tokens;
+  }
+
+  private appendElement(channel: 0 | 1, t: number): void {
+    this.symbolBuf += channel === this.dotChannel ? '.' : '-';
+    this.lastUpAt = t;
+    this.spaceSentThisSilence = false;
+    this.state = 'AFTER_UP';
   }
 
   private onDown(t: number): Token[] {
